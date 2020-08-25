@@ -6,32 +6,52 @@ int main(int argc, char *argv[]) {
     using namespace Eigen;
     using namespace igl;
     
-    // Input parameters
-    int Ns[3] = {11,21,31};
-    double voxel_size[3] = {1.,1.,1.};
-    
-    // Parsed parameters
-    int N = Ns[0]*Ns[1]*Ns[2];
-    double full_length[3], half_length[3];
-    for (int i = 0; i < 3; ++i) {
-        full_length[i] = Ns[i] * voxel_size[i];
-        half_length[i] = full_length[i]/2.;
+    int min_argc = 2;
+    std::string sdf_string;
+    if (argc < min_argc) {
+        std::cout << "Error: No enough inputs." << std::endl;
+        std::cout << "Usage: visualize_sdf <sdf_file.txt>" << std::endl;
+        return -1;
+    } else {
+        sdf_string = argv[1];
     }
-
+    
     // Read SDF from file
-    std::string filename = "sdf_box.txt";
-    std::vector<double> raw_data(N);
-    if (!std::ifstream(filename)) { // Check if file exists
-        std::cout << "File '" << filename << "' does not exist." << std::endl;
+    std::ifstream file;
+    int N;
+    int Ns[3];
+    double full_length[3], half_length[3];
+    std::vector<double> raw_data;
+    if (!std::ifstream(sdf_string)) { // Check if file exists
+        std::cout << "File '" << sdf_string << "' does not exist." << std::endl;
         return -1;
     } else {
         std::ifstream file;
-        file.open(filename.c_str(), std::ifstream::in);
+        file.open(sdf_string.c_str(), std::ifstream::in);
+        
+		// dimension
+		file >> Ns[0];
+		file >> Ns[1];
+		file >> Ns[2];
+        // voxel size
+        double voxel_size[3];
+		file >> voxel_size[0];
+		file >> voxel_size[1];
+		file >> voxel_size[2];
+
+        // Parsed parameters
+        for (int i = 0; i < 3; ++i) {
+            full_length[i] = Ns[i] * voxel_size[i];
+            half_length[i] = full_length[i]/2.;
+        }
+
+        N = Ns[0]*Ns[1]*Ns[2];
+        raw_data.resize(N);
         for (int i = 0; i < N; ++i) file >> raw_data[i];
         file.close();
-        std::cout << "File '" << filename << "' has been loaded." << std::endl;
+        std::cout << "File '" << sdf_string << "' has been loaded." << std::endl;
     }
-
+    
     // Initialize S and B from file data
     VectorXd S = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(raw_data.data(), raw_data.size());
     VectorXd B = S;

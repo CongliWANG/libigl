@@ -5,6 +5,7 @@ SET(CONGLI_FILES
     render_and_save
     rotate_camera
     visualize_sdf
+    mesh2sdf
 )
 
 foreach(app ${CONGLI_FILES})
